@@ -30,8 +30,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000", 
         "http://127.0.0.1:3000",
-        "http://192.168.1.6:3000",
-        "http://192.168.1.*:3000",  # Cualquier IP en la red 192.168.1.x
+        "http://192.168.11.2:3000",
+        "http://192.168.11.*:3000",  # Cualquier IP en la red 192.168.11.x
         "http://0.0.0.0:3000"
     ],
     allow_credentials=True,
