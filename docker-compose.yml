@@ -56,7 +56,48 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=http://192.168.11.2:8000
+      - VITE_API_URL=http://localhost:8000
+
+  # Backend Admin API
+  admin-backend:
+    build:
+      context: ./admin/backend
+      dockerfile: Dockerfile
+    container_name: secretaria_admin_backend
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-secretaria_user}:${POSTGRES_PASSWORD:-secretaria_password}@postgres:5432/${POSTGRES_DB:-secretaria_db}
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+      - ALGORITHM=${ALGORITHM:-HS256}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+    ports:
+      - "0.0.0.0:8001:8001"
+    depends_on:
+      - postgres
+    networks:
+      - secretaria_network
+    restart: unless-stopped
+    volumes:
+      - ./admin/backend:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+
+  # Frontend Admin
+  admin-frontend:
+    build:
+      context: ./admin/frontend
+      dockerfile: Dockerfile
+    container_name: secretaria_admin_frontend
+    ports:
+      - "0.0.0.0:3001:3001"
+    depends_on:
+      - admin-backend
+    networks:
+      - secretaria_network
+    restart: unless-stopped
+    volumes:
+      - ./admin/frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8001
 
 volumes:
   postgres_data:
