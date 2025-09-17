@@ -11,6 +11,8 @@ import {
 } from 'lucide-react'
 import { api } from '../services/api'
 import TaskForm from './TaskForm'
+import { format, isToday, isTomorrow, isYesterday } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 function TasksList({ limit, showForm = false, onFormClose }) {
   const [tasks, setTasks] = useState([])
@@ -99,6 +101,24 @@ function TasksList({ limit, showForm = false, onFormClose }) {
       default:
         return '⚪'
     }
+  }
+
+  const getRelativeDate = (date) => {
+    const taskDate = new Date(date)
+    
+    if (isToday(taskDate)) {
+      return 'Hoy'
+    } else if (isTomorrow(taskDate)) {
+      return 'Mañana'
+    } else if (isYesterday(taskDate)) {
+      return 'Ayer'
+    } else {
+      return format(taskDate, 'EEEE d \'de\' MMMM', { locale: es })
+    }
+  }
+
+  const getTimeString = (date) => {
+    return format(new Date(date), 'hh:mm a', { locale: es })
   }
 
   if (loading) {
@@ -208,7 +228,12 @@ function TasksList({ limit, showForm = false, onFormClose }) {
                       {task.due_date && (
                         <div className="flex items-center space-x-1">
                           <Calendar className="h-3 w-3" />
-                          <span>{new Date(task.due_date).toLocaleDateString('es-ES')}</span>
+                          <span>
+                            {getRelativeDate(task.due_date)}
+                            {new Date(task.due_date).getHours() !== 0 || new Date(task.due_date).getMinutes() !== 0 ? 
+                              ` - ${getTimeString(task.due_date)}` : ''
+                            }
+                          </span>
                         </div>
                       )}
                       <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>

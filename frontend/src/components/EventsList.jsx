@@ -84,7 +84,7 @@ function EventsList({ limit, showForm = false, onFormClose }) {
   }
 
   const getTimeString = (date) => {
-    return format(new Date(date), 'HH:mm')
+    return format(new Date(date), 'hh:mm a', { locale: es })
   }
 
   if (loading) {
