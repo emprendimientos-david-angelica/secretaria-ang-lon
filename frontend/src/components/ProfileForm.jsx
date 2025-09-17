@@ -28,6 +28,18 @@ function ProfileForm({ user, onSuccess, onCancel }) {
     }
   }, [user])
 
+  // Función para construir la URL completa de la foto
+  const getPhotoUrl = (photoUrl) => {
+    if (!photoUrl) return null
+    // Si ya es una URL completa, devolverla tal como está
+    if (photoUrl.startsWith('http')) return photoUrl
+    // Si es una ruta relativa, construir la URL completa
+    if (photoUrl.startsWith('/api/upload/')) {
+      return `${window.location.origin}${photoUrl}`
+    }
+    return photoUrl
+  }
+
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData({
@@ -317,9 +329,9 @@ function ProfileForm({ user, onSuccess, onCancel }) {
       ) : (
         <div className="space-y-6">
           <div className="flex items-center space-x-4">
-            {user.photo_url ? (
+            {(formData.photo_url || user.photo_url) ? (
               <img
-                src={user.photo_url}
+                src={getPhotoUrl(formData.photo_url || user.photo_url)}
                 alt="Foto de perfil"
                 className="h-20 w-20 rounded-full object-cover border-2 border-gray-200"
                 onError={(e) => {
