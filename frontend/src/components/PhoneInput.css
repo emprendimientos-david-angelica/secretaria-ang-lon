@@ -1,0 +1,72 @@
+/* Estilos personalizados para react-phone-number-input */
+.PhoneInput {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background-color: white;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.PhoneInput:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.PhoneInputInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 0.75rem;
+  padding-left: 2.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  background-color: transparent;
+}
+
+.PhoneInputInput::placeholder {
+  color: #9ca3af;
+}
+
+.PhoneInputCountrySelect {
+  padding: 0.75rem 0.5rem;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.PhoneInputCountrySelect:focus {
+  outline: none;
+}
+
+.PhoneInputCountryIcon {
+  width: 1.25rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+}
+
+.PhoneInputCountryIconImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Estilos para el dropdown de países */
+.PhoneInputCountrySelectArrow {
+  margin-left: 0.25rem;
+  color: #6b7280;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .PhoneInputInput {
+    padding-left: 2rem;
+  }
+  
+  .PhoneInputCountrySelect {
+    padding: 0.75rem 0.25rem;
+  }
+}
