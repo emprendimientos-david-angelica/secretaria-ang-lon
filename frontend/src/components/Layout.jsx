@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { 
   Menu, 
@@ -14,6 +15,7 @@ import {
 function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { user, logout } = useAuth()
+  const location = useLocation()
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -48,14 +50,18 @@ function Layout({ children }) {
           </div>
           <nav className="flex-1 space-y-1 px-4 py-4">
             {navigation.map((item) => (
-              <a
+              <Link
                 key={item.name}
-                href={item.href}
-                className="group flex items-center px-3 py-3 text-sm font-medium text-gray-700 rounded-xl hover:bg-primary-50 hover:text-primary-700"
+                to={item.href}
+                className={`group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-colors ${
+                  location.pathname === item.href
+                    ? 'bg-primary-50 text-primary-700'
+                    : 'text-gray-700 hover:bg-primary-50 hover:text-primary-700'
+                }`}
               >
                 <item.icon className="mr-3 h-5 w-5" />
                 {item.name}
-              </a>
+              </Link>
             ))}
           </nav>
           <div className="border-t border-gray-200 p-4">
@@ -92,14 +98,18 @@ function Layout({ children }) {
           </div>
           <nav className="flex-1 space-y-1 px-4 py-4">
             {navigation.map((item) => (
-              <a
+              <Link
                 key={item.name}
-                href={item.href}
-                className="group flex items-center px-3 py-3 text-sm font-medium text-gray-700 rounded-xl hover:bg-primary-50 hover:text-primary-700"
+                to={item.href}
+                className={`group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-colors ${
+                  location.pathname === item.href
+                    ? 'bg-primary-50 text-primary-700'
+                    : 'text-gray-700 hover:bg-primary-50 hover:text-primary-700'
+                }`}
               >
                 <item.icon className="mr-3 h-5 w-5" />
                 {item.name}
-              </a>
+              </Link>
             ))}
           </nav>
           <div className="border-t border-gray-200 p-4">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { 
   CheckSquare, 
@@ -17,9 +17,25 @@ import EventForm from '../components/EventForm'
 
 function Dashboard() {
   const { user } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('overview')
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [showEventForm, setShowEventForm] = useState(false)
+
+  // Actualizar pestaña activa basada en la URL
+  useEffect(() => {
+    const path = location.pathname
+    if (path === '/dashboard/tasks') {
+      setActiveTab('tasks')
+    } else if (path === '/dashboard/events') {
+      setActiveTab('events')
+    } else if (path === '/dashboard/profile') {
+      setActiveTab('profile')
+    } else {
+      setActiveTab('overview')
+    }
+  }, [location.pathname])
 
   const stats = [
     {
@@ -105,13 +121,14 @@ function Dashboard() {
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8">
           {[
-            { id: 'overview', name: 'Vista General' },
-            { id: 'tasks', name: 'Tareas' },
-            { id: 'events', name: 'Eventos' }
+            { id: 'overview', name: 'Vista General', path: '/dashboard' },
+            { id: 'tasks', name: 'Tareas', path: '/dashboard/tasks' },
+            { id: 'events', name: 'Eventos', path: '/dashboard/events' },
+            { id: 'profile', name: 'Perfil', path: '/dashboard/profile' }
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => navigate(tab.path)}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
                   ? 'border-primary-500 text-primary-600'
@@ -133,7 +150,7 @@ function Dashboard() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Tareas Recientes</h3>
                 <button
-                  onClick={() => setActiveTab('tasks')}
+                  onClick={() => navigate('/dashboard/tasks')}
                   className="text-primary-600 hover:text-primary-700 text-sm font-medium"
                 >
                   Ver todas
@@ -147,7 +164,7 @@ function Dashboard() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Eventos Próximos</h3>
                 <button
-                  onClick={() => setActiveTab('events')}
+                  onClick={() => navigate('/dashboard/events')}
                   className="text-primary-600 hover:text-primary-700 text-sm font-medium"
                 >
                   Ver todos
@@ -160,6 +177,31 @@ function Dashboard() {
 
         {activeTab === 'tasks' && <TasksList />}
         {activeTab === 'events' && <EventsList />}
+        {activeTab === 'profile' && (
+          <div className="card">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Mi Perfil</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Nombre completo</label>
+                <p className="text-gray-900">{user?.full_name || 'No especificado'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Usuario</label>
+                <p className="text-gray-900">{user?.username}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                <p className="text-gray-900">{user?.email}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Activo
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modales */}
