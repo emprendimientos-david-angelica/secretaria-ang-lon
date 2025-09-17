@@ -8,6 +8,7 @@ class UserBase(BaseModel):
     username: str
     full_name: Optional[str] = None
     phone_number: Optional[str] = None
+    photo_url: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str
@@ -17,6 +18,7 @@ class UserUpdate(BaseModel):
     username: Optional[str] = None
     full_name: Optional[str] = None
     phone_number: Optional[str] = None
+    photo_url: Optional[str] = None
 
 class User(UserBase):
     id: int
