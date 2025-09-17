@@ -81,14 +81,22 @@ function Dashboard() {
         </div>
         <div className="flex flex-wrap gap-4">
           <button
-            onClick={() => setShowTaskForm(true)}
+            onClick={() => {
+              navigate('/dashboard/tasks')
+              // Usar setTimeout para asegurar que la navegación se complete antes de abrir el modal
+              setTimeout(() => setShowTaskForm(true), 100)
+            }}
             className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-xl flex items-center space-x-2 transition-all duration-200"
           >
             <Plus className="h-4 w-4" />
             <span>Nueva Tarea</span>
           </button>
           <button
-            onClick={() => setShowEventForm(true)}
+            onClick={() => {
+              navigate('/dashboard/events')
+              // Usar setTimeout para asegurar que la navegación se complete antes de abrir el modal
+              setTimeout(() => setShowEventForm(true), 100)
+            }}
             className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-xl flex items-center space-x-2 transition-all duration-200"
           >
             <Plus className="h-4 w-4" />
