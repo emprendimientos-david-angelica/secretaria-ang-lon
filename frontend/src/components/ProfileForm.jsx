@@ -57,26 +57,35 @@ function ProfileForm({ user, onSuccess, onCancel }) {
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0]
+    console.log('Archivo seleccionado:', file)
+    
     if (file) {
+      console.log('Tipo de archivo:', file.type)
+      console.log('Tamaño del archivo:', file.size)
+      
       // Validar tipo de archivo
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
       if (!allowedTypes.includes(file.type)) {
+        console.error('Tipo de archivo no permitido:', file.type)
         setError('Tipo de archivo no permitido. Solo se permiten imágenes (JPG, PNG, GIF, WebP)')
         return
       }
 
       // Validar tamaño (5MB máximo)
       if (file.size > 5 * 1024 * 1024) {
+        console.error('Archivo demasiado grande:', file.size)
         setError('El archivo es demasiado grande. Tamaño máximo: 5MB')
         return
       }
 
+      console.log('Archivo válido, estableciendo selectedFile')
       setSelectedFile(file)
       setError('')
 
       // Crear preview
       const reader = new FileReader()
       reader.onload = (e) => {
+        console.log('Preview creado')
         setPreviewUrl(e.target.result)
       }
       reader.readAsDataURL(file)
@@ -86,6 +95,7 @@ function ProfileForm({ user, onSuccess, onCancel }) {
   const handlePhotoUpload = async () => {
     if (!selectedFile) return
 
+    console.log('Iniciando subida de foto:', selectedFile.name)
     setUploadingPhoto(true)
     setError('')
 
@@ -93,11 +103,9 @@ function ProfileForm({ user, onSuccess, onCancel }) {
       const formData = new FormData()
       formData.append('file', selectedFile)
 
-      const response = await api.post('/api/upload/profile-photo', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
+      console.log('Enviando petición a /api/upload/profile-photo')
+      const response = await api.post('/api/upload/profile-photo', formData)
+      console.log('Respuesta del servidor:', response.data)
 
       // Actualizar la URL de la foto en el estado
       setFormData(prev => ({
@@ -105,11 +113,14 @@ function ProfileForm({ user, onSuccess, onCancel }) {
         photo_url: response.data.photo_url
       }))
 
+      console.log('Foto subida exitosamente, URL:', response.data.photo_url)
+
       // Limpiar archivo seleccionado
       setSelectedFile(null)
       setPreviewUrl('')
 
     } catch (error) {
+      console.error('Error al subir foto:', error)
       setError(error.response?.data?.detail || 'Error al subir la foto')
     } finally {
       setUploadingPhoto(false)
