@@ -17,6 +17,19 @@ function Layout({ children }) {
   const { user, logout } = useAuth()
   const location = useLocation()
 
+  // Función para construir la URL completa de la foto
+  const getPhotoUrl = (photoUrl) => {
+    if (!photoUrl) return null
+    // Si ya es una URL completa, devolverla tal como está
+    if (photoUrl.startsWith('http')) return photoUrl
+    // Si es una ruta relativa, construir la URL completa usando la base URL de la API
+    if (photoUrl.startsWith('/api/upload/')) {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      return `${API_BASE_URL}${photoUrl}`
+    }
+    return photoUrl
+  }
+
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Tareas', href: '/dashboard/tasks', icon: CheckSquare },
@@ -66,7 +79,20 @@ function Layout({ children }) {
           </nav>
           <div className="border-t border-gray-200 p-4">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="h-8 w-8 bg-primary-100 rounded-full flex items-center justify-center">
+              {user?.photo_url ? (
+                <img
+                  src={getPhotoUrl(user.photo_url)}
+                  alt="Foto de perfil"
+                  className="h-8 w-8 rounded-full object-cover border border-gray-200"
+                  onError={(e) => {
+                    e.target.style.display = 'none'
+                    e.target.nextSibling.style.display = 'flex'
+                  }}
+                />
+              ) : null}
+              <div 
+                className={`h-8 w-8 bg-primary-100 rounded-full flex items-center justify-center ${user?.photo_url ? 'hidden' : ''}`}
+              >
                 <User className="h-4 w-4 text-primary-600" />
               </div>
               <div>
@@ -114,7 +140,20 @@ function Layout({ children }) {
           </nav>
           <div className="border-t border-gray-200 p-4">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="h-8 w-8 bg-primary-100 rounded-full flex items-center justify-center">
+              {user?.photo_url ? (
+                <img
+                  src={getPhotoUrl(user.photo_url)}
+                  alt="Foto de perfil"
+                  className="h-8 w-8 rounded-full object-cover border border-gray-200"
+                  onError={(e) => {
+                    e.target.style.display = 'none'
+                    e.target.nextSibling.style.display = 'flex'
+                  }}
+                />
+              ) : null}
+              <div 
+                className={`h-8 w-8 bg-primary-100 rounded-full flex items-center justify-center ${user?.photo_url ? 'hidden' : ''}`}
+              >
                 <User className="h-4 w-4 text-primary-600" />
               </div>
               <div>
