@@ -46,7 +46,7 @@ function ProfileForm({ user, onSuccess, onCancel }) {
     setError('')
 
     try {
-      await api.put('/api/users/me', formData)
+      await api.put('/api/auth/me', formData)
       onSuccess()
       setIsEditing(false)
     } catch (error) {
