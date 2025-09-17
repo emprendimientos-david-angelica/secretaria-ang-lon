@@ -47,24 +47,10 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 @router.post("/login", response_model=Token)
 def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     """Autentica un usuario y devuelve un token JWT"""
-    print(f"Intentando login con email: {user_credentials.email}")
-    
     # Buscar usuario por email
     user = db.query(User).filter(User.email == user_credentials.email).first()
-    print(f"Usuario encontrado: {user is not None}")
     
-    if not user:
-        print(f"No se encontró usuario con email: {user_credentials.email}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Credenciales incorrectas",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    print(f"Usuario encontrado: {user.email}, activo: {user.is_active}")
-    
-    if not verify_password(user_credentials.password, user.hashed_password):
-        print("Contraseña incorrecta")
+    if not user or not verify_password(user_credentials.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciales incorrectas",
@@ -72,13 +58,10 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
         )
     
     if not user.is_active:
-        print("Usuario inactivo")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Usuario inactivo"
         )
-    
-    print("Login exitoso, creando token")
     
     # Crear token de acceso usando email como identificador
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
