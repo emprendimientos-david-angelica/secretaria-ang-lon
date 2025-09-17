@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { User, Lock, Sparkles } from 'lucide-react'
+import { Mail, Lock, Sparkles } from 'lucide-react'
 
 function Login() {
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: ''
   })
   const [loading, setLoading] = useState(false)
@@ -26,7 +26,7 @@ function Login() {
     setLoading(true)
     setError('')
 
-    const result = await login(formData.username, formData.password)
+    const result = await login(formData.email, formData.password)
     
     if (result.success) {
       navigate('/dashboard')
@@ -63,19 +63,19 @@ function Login() {
             )}
 
             <div>
-              <label htmlFor="username" className="form-label">
-                Nombre de usuario
+              <label htmlFor="email" className="form-label">
+                Correo electrónico
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
-                  id="username"
-                  name="username"
-                  type="text"
+                  id="email"
+                  name="email"
+                  type="email"
                   required
                   className="input-field pl-10"
-                  placeholder="Tu nombre de usuario"
-                  value={formData.username}
+                  placeholder="tu@email.com"
+                  value={formData.email}
                   onChange={handleChange}
                 />
               </div>

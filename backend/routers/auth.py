@@ -47,8 +47,8 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 @router.post("/login", response_model=Token)
 def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     """Autentica un usuario y devuelve un token JWT"""
-    # Buscar usuario por username
-    user = db.query(User).filter(User.username == user_credentials.username).first()
+    # Buscar usuario por email
+    user = db.query(User).filter(User.email == user_credentials.email).first()
     
     if not user or not verify_password(user_credentials.password, user.hashed_password):
         raise HTTPException(
@@ -63,10 +63,10 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
             detail="Usuario inactivo"
         )
     
-    # Crear token de acceso
+    # Crear token de acceso usando email como identificador
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.email}, expires_delta=access_token_expires
     )
     
     return {"access_token": access_token, "token_type": "bearer"}

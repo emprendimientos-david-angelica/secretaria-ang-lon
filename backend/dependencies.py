@@ -14,16 +14,16 @@ def get_current_user(
 ) -> User:
     """Obtiene el usuario actual basado en el token JWT"""
     token = credentials.credentials
-    username = verify_token(token)
+    email = verify_token(token)
     
-    if username is None:
+    if email is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token inválido o expirado",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    user = db.query(User).filter(User.username == username).first()
+    user = db.query(User).filter(User.email == email).first()
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
