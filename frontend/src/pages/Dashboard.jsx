@@ -154,7 +154,11 @@ function Dashboard() {
                   Ver todas
                 </button>
               </div>
-              <TasksList limit={5} />
+              <TasksList 
+                limit={5} 
+                showForm={showTaskForm} 
+                onFormClose={() => setShowTaskForm(false)} 
+              />
             </div>
 
             {/* Eventos Próximos */}
@@ -168,7 +172,11 @@ function Dashboard() {
                   Ver todos
                 </button>
               </div>
-              <EventsList limit={5} />
+              <EventsList 
+                limit={5} 
+                showForm={showEventForm} 
+                onFormClose={() => setShowEventForm(false)} 
+              />
             </div>
           </div>
         )}
