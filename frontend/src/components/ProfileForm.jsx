@@ -121,7 +121,8 @@ function ProfileForm({ user, onSuccess, onCancel }) {
 
     } catch (error) {
       console.error('Error al subir foto:', error)
-      setError(error.response?.data?.detail || 'Error al subir la foto')
+      const errorMessage = error.response?.data?.detail || error.response?.data?.message || 'Error al subir la foto'
+      setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage))
     } finally {
       setUploadingPhoto(false)
     }
@@ -136,7 +137,8 @@ function ProfileForm({ user, onSuccess, onCancel }) {
       }))
       setError('')
     } catch (error) {
-      setError(error.response?.data?.detail || 'Error al eliminar la foto')
+      const errorMessage = error.response?.data?.detail || error.response?.data?.message || 'Error al eliminar la foto'
+      setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage))
     }
   }
 
@@ -150,7 +152,8 @@ function ProfileForm({ user, onSuccess, onCancel }) {
       onSuccess()
       setIsEditing(false)
     } catch (error) {
-      setError(error.response?.data?.detail || 'Error al actualizar el perfil')
+      const errorMessage = error.response?.data?.detail || error.response?.data?.message || 'Error al actualizar el perfil'
+      setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage))
     } finally {
       setLoading(false)
     }

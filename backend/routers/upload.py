@@ -87,11 +87,11 @@ async def upload_profile_photo(
             detail=f"El archivo es demasiado grande. Tamaño máximo: {MAX_FILE_SIZE // (1024*1024)}MB"
         )
     
+    # Generar nombre único para el archivo
+    unique_filename = generate_unique_filename(file.filename)
+    file_path = os.path.join("uploads", "profile_photos", unique_filename)
+    
     try:
-        # Generar nombre único para el archivo
-        unique_filename = generate_unique_filename(file.filename)
-        file_path = os.path.join("uploads", "profile_photos", unique_filename)
-        
         # Asegurar que el directorio existe
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         
