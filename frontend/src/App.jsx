@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import Dashboard from './pages/Dashboard'
 import Layout from './components/Layout'
 
@@ -29,6 +31,14 @@ function AppRoutes() {
       <Route 
         path="/register" 
         element={isAuthenticated ? <Navigate to="/dashboard" /> : <Register />} 
+      />
+      <Route 
+        path="/forgot-password" 
+        element={isAuthenticated ? <Navigate to="/dashboard" /> : <ForgotPassword />} 
+      />
+      <Route 
+        path="/reset-password" 
+        element={isAuthenticated ? <Navigate to="/dashboard" /> : <ResetPassword />} 
       />
       <Route 
         path="/dashboard/*" 

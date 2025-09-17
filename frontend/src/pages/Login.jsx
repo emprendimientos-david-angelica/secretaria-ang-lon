@@ -117,7 +117,15 @@ function Login() {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-3">
+            <div>
+              <Link 
+                to="/forgot-password" 
+                className="text-primary-600 hover:text-primary-700 font-medium text-sm"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
             <p className="text-gray-600">
               ¿No tienes una cuenta?{' '}
               <Link 
