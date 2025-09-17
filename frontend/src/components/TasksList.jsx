@@ -131,6 +131,18 @@ function TasksList({ limit }) {
           </button>
         </div>
       )}
+      
+      {limit && (
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => setShowTaskForm(true)}
+            className="btn-primary inline-flex items-center space-x-2 text-sm"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Nueva Tarea</span>
+          </button>
+        </div>
+      )}
 
       <div className="space-y-3">
         {tasks.map((task) => (
