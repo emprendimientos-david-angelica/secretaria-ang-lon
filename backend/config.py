@@ -4,6 +4,9 @@ from typing import Optional
 class Settings(BaseSettings):
     # Base de datos
     DATABASE_URL: str = "postgresql://secretaria_user:secretaria_password@localhost:5432/secretaria_db"
+    POSTGRES_DB: Optional[str] = None
+    POSTGRES_USER: Optional[str] = None
+    POSTGRES_PASSWORD: Optional[str] = None
     
     # JWT
     SECRET_KEY: str = "your-secret-key-change-in-production"
@@ -13,6 +16,11 @@ class Settings(BaseSettings):
     # API
     API_HOST: str = "0.0.0.0"
     API_PORT: int = 8000
+    
+    # Email
+    MAIL_USERNAME: Optional[str] = None
+    MAIL_PASSWORD: Optional[str] = None
+    MAIL_FROM: Optional[str] = None
     
     class Config:
         env_file = ".env"
