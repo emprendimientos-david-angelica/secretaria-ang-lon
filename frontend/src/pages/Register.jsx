@@ -1,13 +1,17 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { User, Lock, Mail, UserPlus, Sparkles } from 'lucide-react'
+import { User, Lock, Mail, UserPlus, Sparkles, Phone } from 'lucide-react'
+import PhoneInput from 'react-phone-number-input'
+import 'react-phone-number-input/style.css'
+import '../components/PhoneInput.css'
 
 function Register() {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     full_name: '',
+    phone_number: '',
     password: '',
     confirmPassword: ''
   })
@@ -22,6 +26,13 @@ function Register() {
       ...formData,
       [e.target.name]: e.target.value
     })
+  }
+
+  const handlePhoneChange = (value) => {
+    setFormData(prev => ({
+      ...prev,
+      phone_number: value || ''
+    }))
   }
 
   const handleSubmit = async (e) => {
@@ -46,6 +57,7 @@ function Register() {
       username: formData.username,
       email: formData.email,
       full_name: formData.full_name,
+      phone_number: formData.phone_number,
       password: formData.password
     }
 
@@ -141,6 +153,25 @@ function Register() {
                   onChange={handleChange}
                 />
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="phone_number" className="form-label">
+                Número de teléfono
+              </label>
+              <p className="text-sm text-gray-500 mt-1 mb-2">
+                Selecciona tu país y ingresa tu número de teléfono
+              </p>
+              <PhoneInput
+                defaultCountry="CO" // Colombia
+                value={formData.phone_number}
+                onChange={handlePhoneChange}
+                className="input-field phone-input-container"
+                inputClassName="phone-input-field"
+                countrySelectProps={{
+                  className: 'phone-country-select'
+                }}
+              />
             </div>
 
             <div>
