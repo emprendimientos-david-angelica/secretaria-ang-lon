@@ -4,9 +4,6 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 })
 
 // Interceptor para agregar el token de autenticación
@@ -16,6 +13,14 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
+    // Si estamos enviando FormData, asegurar que no haya Content-Type manual
+    if (config.data instanceof FormData) {
+      if (config.headers && 'Content-Type' in config.headers) {
+        delete config.headers['Content-Type']
+      }
+    }
+
     return config
   },
   (error) => {

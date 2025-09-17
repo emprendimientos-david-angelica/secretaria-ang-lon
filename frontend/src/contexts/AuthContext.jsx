@@ -75,6 +75,7 @@ export function AuthProvider({ children }) {
 
   const value = {
     user,
+    setUser,
     token,
     isAuthenticated: !!token,
     loading,

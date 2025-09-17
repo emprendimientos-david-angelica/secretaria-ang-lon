@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Save, User, Mail, Phone, Camera, X } from 'lucide-react'
 import { api } from '../services/api'
+import { useAuth } from '../contexts/AuthContext'
 import PhoneInput from 'react-phone-number-input'
 import 'react-phone-number-input/style.css'
 import './PhoneInput.css'
 
 function ProfileForm({ user, onSuccess, onCancel }) {
+  const { setUser } = useAuth()
   const [formData, setFormData] = useState({
     full_name: '',
     phone_number: '',
@@ -33,9 +35,10 @@ function ProfileForm({ user, onSuccess, onCancel }) {
     if (!photoUrl) return null
     // Si ya es una URL completa, devolverla tal como está
     if (photoUrl.startsWith('http')) return photoUrl
-    // Si es una ruta relativa, construir la URL completa
+    // Si es una ruta relativa, construir la URL completa usando la base URL de la API
     if (photoUrl.startsWith('/api/upload/')) {
-      return `${window.location.origin}${photoUrl}`
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      return `${API_BASE_URL}${photoUrl}`
     }
     return photoUrl
   }
@@ -57,35 +60,27 @@ function ProfileForm({ user, onSuccess, onCancel }) {
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0]
-    console.log('Archivo seleccionado:', file)
     
     if (file) {
-      console.log('Tipo de archivo:', file.type)
-      console.log('Tamaño del archivo:', file.size)
-      
       // Validar tipo de archivo
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
       if (!allowedTypes.includes(file.type)) {
-        console.error('Tipo de archivo no permitido:', file.type)
         setError('Tipo de archivo no permitido. Solo se permiten imágenes (JPG, PNG, GIF, WebP)')
         return
       }
 
       // Validar tamaño (5MB máximo)
       if (file.size > 5 * 1024 * 1024) {
-        console.error('Archivo demasiado grande:', file.size)
         setError('El archivo es demasiado grande. Tamaño máximo: 5MB')
         return
       }
 
-      console.log('Archivo válido, estableciendo selectedFile')
       setSelectedFile(file)
       setError('')
 
       // Crear preview
       const reader = new FileReader()
       reader.onload = (e) => {
-        console.log('Preview creado')
         setPreviewUrl(e.target.result)
       }
       reader.readAsDataURL(file)
@@ -95,7 +90,6 @@ function ProfileForm({ user, onSuccess, onCancel }) {
   const handlePhotoUpload = async () => {
     if (!selectedFile) return
 
-    console.log('Iniciando subida de foto:', selectedFile.name)
     setUploadingPhoto(true)
     setError('')
 
@@ -103,9 +97,7 @@ function ProfileForm({ user, onSuccess, onCancel }) {
       const formData = new FormData()
       formData.append('file', selectedFile)
 
-      console.log('Enviando petición a /api/upload/profile-photo')
       const response = await api.post('/api/upload/profile-photo', formData)
-      console.log('Respuesta del servidor:', response.data)
 
       // Actualizar la URL de la foto en el estado
       setFormData(prev => ({
@@ -113,14 +105,17 @@ function ProfileForm({ user, onSuccess, onCancel }) {
         photo_url: response.data.photo_url
       }))
 
-      console.log('Foto subida exitosamente, URL:', response.data.photo_url)
+      // Actualizar el contexto de autenticación con la nueva foto
+      setUser(prevUser => ({
+        ...prevUser,
+        photo_url: response.data.photo_url
+      }))
 
       // Limpiar archivo seleccionado
       setSelectedFile(null)
       setPreviewUrl('')
 
     } catch (error) {
-      console.error('Error al subir foto:', error)
       const errorMessage = error.response?.data?.detail || error.response?.data?.message || 'Error al subir la foto'
       setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage))
     } finally {
@@ -135,6 +130,13 @@ function ProfileForm({ user, onSuccess, onCancel }) {
         ...prev,
         photo_url: ''
       }))
+      
+      // Actualizar el contexto de autenticación removiendo la foto
+      setUser(prevUser => ({
+        ...prevUser,
+        photo_url: null
+      }))
+      
       setError('')
     } catch (error) {
       const errorMessage = error.response?.data?.detail || error.response?.data?.message || 'Error al eliminar la foto'
@@ -252,7 +254,7 @@ function ProfileForm({ user, onSuccess, onCancel }) {
             <div className="flex items-center space-x-4 mb-4">
               {(previewUrl || formData.photo_url) ? (
                 <img
-                  src={previewUrl || formData.photo_url}
+                  src={previewUrl || getPhotoUrl(formData.photo_url)}
                   alt="Preview"
                   className="h-20 w-20 rounded-full object-cover border-2 border-gray-200"
                   onError={(e) => {
