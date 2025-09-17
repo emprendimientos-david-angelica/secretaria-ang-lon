@@ -28,16 +28,15 @@ function EventForm({ isOpen, onClose, onSuccess, event }) {
         is_all_day: event.is_all_day || false
       })
     } else {
-      // Establecer fecha y hora por defecto (hoy + 1 hora)
+      // Establecer solo fecha por defecto (mañana), sin hora
       const tomorrow = new Date()
       tomorrow.setDate(tomorrow.getDate() + 1)
-      tomorrow.setHours(9, 0, 0, 0)
       
       setFormData({
         title: '',
         description: '',
         event_date: tomorrow.toISOString().split('T')[0],
-        event_time: '09:00',
+        event_time: '',
         location: '',
         is_all_day: false
       })
