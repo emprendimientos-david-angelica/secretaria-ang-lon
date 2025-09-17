@@ -47,10 +47,23 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 @router.post("/login", response_model=Token)
 def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     """Autentica un usuario y devuelve un token JWT"""
+    print(f"Login intento con email: {user_credentials.email}")
+    
     # Buscar usuario por email
     user = db.query(User).filter(User.email == user_credentials.email).first()
     
-    if not user or not verify_password(user_credentials.password, user.hashed_password):
+    if not user:
+        print(f"Usuario no encontrado con email: {user_credentials.email}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciales incorrectas",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    print(f"Usuario encontrado: {user.email}, username: {user.username}")
+    
+    if not verify_password(user_credentials.password, user.hashed_password):
+        print("Contraseña incorrecta")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciales incorrectas",
@@ -58,10 +71,13 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
         )
     
     if not user.is_active:
+        print("Usuario inactivo")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Usuario inactivo"
         )
+    
+    print("Login exitoso")
     
     # Crear token de acceso usando email como identificador
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -119,3 +135,22 @@ def update_current_user_info(
     db.refresh(current_user)
     
     return current_user
+
+@router.post("/reset-passwords")
+def reset_all_passwords(db: Session = Depends(get_db)):
+    """Endpoint temporal para resetear todas las contraseñas a 'password123'"""
+    users = db.query(User).all()
+    new_password = "password123"
+    hashed_password = get_password_hash(new_password)
+    
+    for user in users:
+        user.hashed_password = hashed_password
+        db.add(user)
+    
+    db.commit()
+    
+    return {
+        "message": f"Contraseñas reseteadas para {len(users)} usuarios",
+        "new_password": new_password,
+        "users_updated": [{"id": u.id, "email": u.email, "username": u.username} for u in users]
+    }
