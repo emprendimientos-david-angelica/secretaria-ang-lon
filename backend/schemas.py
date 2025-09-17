@@ -29,7 +29,7 @@ class User(UserBase):
 class TaskBase(BaseModel):
     title: str
     description: Optional[str] = None
-    due_date: Optional[date] = None
+    due_date: Optional[datetime] = None
     priority: Optional[str] = "medium"
 
 class TaskCreate(TaskBase):
@@ -38,7 +38,7 @@ class TaskCreate(TaskBase):
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
-    due_date: Optional[date] = None
+    due_date: Optional[datetime] = None
     is_completed: Optional[bool] = None
     priority: Optional[str] = None
 
