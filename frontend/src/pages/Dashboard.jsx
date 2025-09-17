@@ -33,6 +33,10 @@ function Dashboard() {
     } else {
       setActiveTab('overview')
     }
+    
+    // Resetear estados de modales al cambiar de pestaña
+    setShowTaskForm(false)
+    setShowEventForm(false)
   }, [location.pathname])
 
   const stats = [
