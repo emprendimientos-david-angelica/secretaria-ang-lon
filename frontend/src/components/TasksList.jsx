@@ -12,11 +12,16 @@ import {
 import { api } from '../services/api'
 import TaskForm from './TaskForm'
 
-function TasksList({ limit }) {
+function TasksList({ limit, showForm = false, onFormClose }) {
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
-  const [showTaskForm, setShowTaskForm] = useState(false)
+  const [showTaskForm, setShowTaskForm] = useState(showForm)
   const [editingTask, setEditingTask] = useState(null)
+
+  // Sincronizar con la prop showForm
+  useEffect(() => {
+    setShowTaskForm(showForm)
+  }, [showForm])
 
   useEffect(() => {
     fetchTasks()
@@ -64,6 +69,10 @@ function TasksList({ limit }) {
     setShowTaskForm(false)
     setEditingTask(null)
     fetchTasks()
+    // Notificar al componente padre si se proporciona el callback
+    if (onFormClose) {
+      onFormClose()
+    }
   }
 
   const getPriorityColor = (priority) => {

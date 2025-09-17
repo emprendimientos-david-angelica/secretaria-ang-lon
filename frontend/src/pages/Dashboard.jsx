@@ -12,8 +12,6 @@ import {
 } from 'lucide-react'
 import TasksList from '../components/TasksList'
 import EventsList from '../components/EventsList'
-import TaskForm from '../components/TaskForm'
-import EventForm from '../components/EventForm'
 
 function Dashboard() {
   const { user } = useAuth()
@@ -175,8 +173,18 @@ function Dashboard() {
           </div>
         )}
 
-        {activeTab === 'tasks' && <TasksList />}
-        {activeTab === 'events' && <EventsList />}
+        {activeTab === 'tasks' && (
+          <TasksList 
+            showForm={showTaskForm} 
+            onFormClose={() => setShowTaskForm(false)} 
+          />
+        )}
+        {activeTab === 'events' && (
+          <EventsList 
+            showForm={showEventForm} 
+            onFormClose={() => setShowEventForm(false)} 
+          />
+        )}
         {activeTab === 'profile' && (
           <div className="card">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Mi Perfil</h2>
@@ -204,28 +212,6 @@ function Dashboard() {
         )}
       </div>
 
-      {/* Modales */}
-      {showTaskForm && (
-        <TaskForm
-          isOpen={showTaskForm}
-          onClose={() => setShowTaskForm(false)}
-          onSuccess={() => {
-            setShowTaskForm(false)
-            // Aquí podrías refrescar la lista de tareas
-          }}
-        />
-      )}
-
-      {showEventForm && (
-        <EventForm
-          isOpen={showEventForm}
-          onClose={() => setShowEventForm(false)}
-          onSuccess={() => {
-            setShowEventForm(false)
-            // Aquí podrías refrescar la lista de eventos
-          }}
-        />
-      )}
     </div>
   )
 }

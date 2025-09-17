@@ -13,11 +13,16 @@ import EventForm from './EventForm'
 import { format, isToday, isTomorrow, isYesterday } from 'date-fns'
 import { es } from 'date-fns/locale'
 
-function EventsList({ limit }) {
+function EventsList({ limit, showForm = false, onFormClose }) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
-  const [showEventForm, setShowEventForm] = useState(false)
+  const [showEventForm, setShowEventForm] = useState(showForm)
   const [editingEvent, setEditingEvent] = useState(null)
+
+  // Sincronizar con la prop showForm
+  useEffect(() => {
+    setShowEventForm(showForm)
+  }, [showForm])
 
   useEffect(() => {
     fetchEvents()
@@ -58,6 +63,10 @@ function EventsList({ limit }) {
     setShowEventForm(false)
     setEditingEvent(null)
     fetchEvents()
+    // Notificar al componente padre si se proporciona el callback
+    if (onFormClose) {
+      onFormClose()
+    }
   }
 
   const getRelativeDate = (date) => {
