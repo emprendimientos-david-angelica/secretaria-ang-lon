@@ -7,6 +7,7 @@ function TaskForm({ isOpen, onClose, onSuccess, task }) {
     title: '',
     description: '',
     due_date: '',
+    due_time: '',
     priority: 'medium'
   })
   const [loading, setLoading] = useState(false)
@@ -16,10 +17,12 @@ function TaskForm({ isOpen, onClose, onSuccess, task }) {
 
   useEffect(() => {
     if (task) {
+      const taskDate = task.due_date ? new Date(task.due_date) : null
       setFormData({
         title: task.title || '',
         description: task.description || '',
-        due_date: task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '',
+        due_date: taskDate ? taskDate.toISOString().split('T')[0] : '',
+        due_time: taskDate ? taskDate.toTimeString().slice(0, 5) : '',
         priority: task.priority || 'medium'
       })
     } else {
@@ -27,6 +30,7 @@ function TaskForm({ isOpen, onClose, onSuccess, task }) {
         title: '',
         description: '',
         due_date: '',
+        due_time: '',
         priority: 'medium'
       })
     }
@@ -45,10 +49,28 @@ function TaskForm({ isOpen, onClose, onSuccess, task }) {
     setError('')
 
     try {
+      // Preparar datos para envío
+      const submitData = {
+        title: formData.title,
+        description: formData.description,
+        priority: formData.priority
+      }
+
+      // Combinar fecha y hora si ambos están presentes
+      if (formData.due_date) {
+        if (formData.due_time) {
+          // Combinar fecha y hora
+          submitData.due_date = `${formData.due_date}T${formData.due_time}:00`
+        } else {
+          // Solo fecha (sin hora específica)
+          submitData.due_date = `${formData.due_date}T00:00:00`
+        }
+      }
+
       if (isEditing) {
-        await api.put(`/api/tasks/${task.id}`, formData)
+        await api.put(`/api/tasks/${task.id}`, submitData)
       } else {
-        await api.post('/api/tasks/', formData)
+        await api.post('/api/tasks/', submitData)
       }
       
       onSuccess()
@@ -144,23 +166,40 @@ function TaskForm({ isOpen, onClose, onSuccess, task }) {
                 </div>
 
                 <div>
-                  <label htmlFor="priority" className="form-label">
-                    Prioridad
+                  <label htmlFor="due_time" className="form-label">
+                    Hora límite
                   </label>
                   <div className="relative">
-                    <Flag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <select
-                      id="priority"
-                      name="priority"
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <input
+                      id="due_time"
+                      name="due_time"
+                      type="time"
                       className="input-field pl-10"
-                      value={formData.priority}
+                      value={formData.due_time}
                       onChange={handleChange}
-                    >
-                      <option value="low">Baja</option>
-                      <option value="medium">Media</option>
-                      <option value="high">Alta</option>
-                    </select>
+                    />
                   </div>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="priority" className="form-label">
+                  Prioridad
+                </label>
+                <div className="relative">
+                  <Flag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <select
+                    id="priority"
+                    name="priority"
+                    className="input-field pl-10"
+                    value={formData.priority}
+                    onChange={handleChange}
+                  >
+                    <option value="low">Baja</option>
+                    <option value="medium">Media</option>
+                    <option value="high">Alta</option>
+                  </select>
                 </div>
               </div>
 
