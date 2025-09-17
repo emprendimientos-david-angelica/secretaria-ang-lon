@@ -52,13 +52,15 @@ def resize_image(image_path: str, max_size: tuple = (400, 400)) -> str:
 
 @router.post("/profile-photo")
 async def upload_profile_photo(
-    file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    file: UploadFile = File(...)
 ):
     """Subir foto de perfil del usuario"""
     
+    print("DEBUG: Función upload_profile_photo llamada")
     print(f"DEBUG: Archivo recibido - filename: {file.filename}, content_type: {file.content_type}")
+    print(f"DEBUG: Usuario actual: {current_user.username}")
     
     # Verificar que el archivo no esté vacío
     if not file.filename:
