@@ -6,7 +6,7 @@ import uvicorn
 
 from database import engine, get_db
 from models import Base
-from routers import auth, tasks, events
+from routers import auth, tasks, events, upload
 from config import settings
 
 # Crear tablas de la base de datos
@@ -43,6 +43,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
 app.include_router(events.router, prefix="/api/events", tags=["events"])
+app.include_router(upload.router, prefix="/api/upload", tags=["upload"])
 
 @app.get("/")
 async def root():

@@ -14,6 +14,9 @@ function ProfileForm({ user, onSuccess, onCancel }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [isEditing, setIsEditing] = useState(false)
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [previewUrl, setPreviewUrl] = useState('')
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -38,6 +41,80 @@ function ProfileForm({ user, onSuccess, onCancel }) {
       ...formData,
       phone_number: value || ''
     })
+  }
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      // Validar tipo de archivo
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+      if (!allowedTypes.includes(file.type)) {
+        setError('Tipo de archivo no permitido. Solo se permiten imágenes (JPG, PNG, GIF, WebP)')
+        return
+      }
+
+      // Validar tamaño (5MB máximo)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('El archivo es demasiado grande. Tamaño máximo: 5MB')
+        return
+      }
+
+      setSelectedFile(file)
+      setError('')
+
+      // Crear preview
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setPreviewUrl(e.target.result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handlePhotoUpload = async () => {
+    if (!selectedFile) return
+
+    setUploadingPhoto(true)
+    setError('')
+
+    try {
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+
+      const response = await api.post('/api/upload/profile-photo', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+
+      // Actualizar la URL de la foto en el estado
+      setFormData(prev => ({
+        ...prev,
+        photo_url: response.data.photo_url
+      }))
+
+      // Limpiar archivo seleccionado
+      setSelectedFile(null)
+      setPreviewUrl('')
+
+    } catch (error) {
+      setError(error.response?.data?.detail || 'Error al subir la foto')
+    } finally {
+      setUploadingPhoto(false)
+    }
+  }
+
+  const handleDeletePhoto = async () => {
+    try {
+      await api.delete('/api/upload/profile-photo')
+      setFormData(prev => ({
+        ...prev,
+        photo_url: ''
+      }))
+      setError('')
+    } catch (error) {
+      setError(error.response?.data?.detail || 'Error al eliminar la foto')
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -67,6 +144,8 @@ function ProfileForm({ user, onSuccess, onCancel }) {
       phone_number: user.phone_number || '',
       photo_url: user.photo_url || ''
     })
+    setSelectedFile(null)
+    setPreviewUrl('')
     setError('')
   }
 
@@ -139,23 +218,80 @@ function ProfileForm({ user, onSuccess, onCancel }) {
           </div>
 
           <div>
-            <label htmlFor="photo_url" className="form-label">
-              URL de la foto
+            <label className="form-label">
+              Foto de perfil
             </label>
-            <div className="relative">
-              <Camera className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                id="photo_url"
-                name="photo_url"
-                type="url"
-                className="input-field pl-10"
-                placeholder="https://ejemplo.com/mi-foto.jpg"
-                value={formData.photo_url}
-                onChange={handleChange}
-              />
+            
+            {/* Preview de la foto actual o seleccionada */}
+            <div className="flex items-center space-x-4 mb-4">
+              {(previewUrl || formData.photo_url) ? (
+                <img
+                  src={previewUrl || formData.photo_url}
+                  alt="Preview"
+                  className="h-20 w-20 rounded-full object-cover border-2 border-gray-200"
+                  onError={(e) => {
+                    e.target.style.display = 'none'
+                  }}
+                />
+              ) : (
+                <div className="h-20 w-20 rounded-full bg-gray-100 flex items-center justify-center">
+                  <Camera className="h-8 w-8 text-gray-400" />
+                </div>
+              )}
+              
+              <div className="flex-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  id="photo-upload"
+                />
+                <label
+                  htmlFor="photo-upload"
+                  className="btn-secondary inline-flex items-center space-x-2 cursor-pointer"
+                >
+                  <Camera className="h-4 w-4" />
+                  <span>Seleccionar foto</span>
+                </label>
+                
+                {selectedFile && (
+                  <div className="mt-2 space-x-2">
+                    <button
+                      type="button"
+                      onClick={handlePhotoUpload}
+                      disabled={uploadingPhoto}
+                      className="btn-primary text-sm disabled:opacity-50"
+                    >
+                      {uploadingPhoto ? 'Subiendo...' : 'Subir foto'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFile(null)
+                        setPreviewUrl('')
+                      }}
+                      className="btn-secondary text-sm"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                )}
+                
+                {formData.photo_url && !selectedFile && (
+                  <button
+                    type="button"
+                    onClick={handleDeletePhoto}
+                    className="mt-2 text-red-600 hover:text-red-700 text-sm"
+                  >
+                    Eliminar foto actual
+                  </button>
+                )}
+              </div>
             </div>
-            <p className="text-sm text-gray-500 mt-1">
-              Ingresa la URL de tu foto de perfil
+            
+            <p className="text-sm text-gray-500">
+              Formatos permitidos: JPG, PNG, GIF, WebP. Tamaño máximo: 5MB
             </p>
           </div>
 
