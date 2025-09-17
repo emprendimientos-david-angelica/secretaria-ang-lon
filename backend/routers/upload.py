@@ -58,15 +58,20 @@ async def upload_profile_photo(
 ):
     """Subir foto de perfil del usuario"""
     
+    print(f"DEBUG: Archivo recibido - filename: {file.filename}, content_type: {file.content_type}")
+    
     # Verificar que el archivo no esté vacío
     if not file.filename:
+        print("DEBUG: Error - No filename")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No se ha seleccionado ningún archivo"
         )
     
     # Verificar extensión del archivo
+    print(f"DEBUG: Verificando extensión - filename: {file.filename}")
     if not is_allowed_file(file.filename):
+        print(f"DEBUG: Error - Extensión no permitida: {file.filename}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Tipo de archivo no permitido. Extensiones permitidas: {', '.join(ALLOWED_EXTENSIONS)}"
@@ -74,7 +79,9 @@ async def upload_profile_photo(
     
     # Verificar tamaño del archivo
     file_content = await file.read()
+    print(f"DEBUG: Tamaño del archivo: {len(file_content)} bytes")
     if len(file_content) > MAX_FILE_SIZE:
+        print(f"DEBUG: Error - Archivo demasiado grande: {len(file_content)} > {MAX_FILE_SIZE}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"El archivo es demasiado grande. Tamaño máximo: {MAX_FILE_SIZE // (1024*1024)}MB"
