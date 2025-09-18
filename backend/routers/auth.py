@@ -25,7 +25,21 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
             detail="El email ya está registrado"
         )
     
-    db_user = db.query(User).filter(User.username == user.username).first()
+    # Generar username automáticamente si no se proporciona
+    username = user.username
+    if not username:
+        # Usar la parte antes del @ del email como base
+        email_prefix = user.email.split('@')[0]
+        username = email_prefix
+        counter = 1
+        
+        # Verificar que el username sea único
+        while db.query(User).filter(User.username == username).first():
+            username = f"{email_prefix}{counter}"
+            counter += 1
+    
+    # Validar que el username generado no esté en uso
+    db_user = db.query(User).filter(User.username == username).first()
     if db_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -36,7 +50,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     hashed_password = get_password_hash(user.password)
     db_user = User(
         email=user.email,
-        username=user.username,
+        username=username,  # Username generado automáticamente
         full_name=user.full_name,
         hashed_password=hashed_password
     )
@@ -131,22 +145,30 @@ def generate_reset_code():
 async def forgot_password(request: PasswordResetRequest, db: Session = Depends(get_db)):
     """Solicita un código de recuperación de contraseña por email"""
     
+    print(f"🔍 [LOG] Solicitud de recuperación de contraseña para: {request.email}")
+    
     # Verificar si el usuario existe
     user = db.query(User).filter(User.email == request.email).first()
     if not user:
+        print(f"❌ [LOG] Usuario no encontrado: {request.email}")
         # Por seguridad, no revelamos si el email existe o no
         return {"message": "Si el email existe, se enviará un código de recuperación"}
     
+    print(f"✅ [LOG] Usuario encontrado: {user.email}")
+    
     # Generar código de 6 dígitos
     code = generate_reset_code()
+    print(f"🔢 [LOG] Código generado: {code}")
     
     # Calcular tiempo de expiración (15 minutos)
     expires_at = datetime.utcnow() + timedelta(minutes=15)
+    print(f"⏰ [LOG] Código expira en: {expires_at}")
     
     # Invalidar códigos anteriores para este email
-    db.query(PasswordResetCode).filter(
+    old_codes = db.query(PasswordResetCode).filter(
         PasswordResetCode.email == request.email
     ).update({"is_used": True})
+    print(f"🗑️ [LOG] Códigos anteriores invalidados: {old_codes}")
     
     # Crear nuevo código
     reset_code = PasswordResetCode(
@@ -157,16 +179,21 @@ async def forgot_password(request: PasswordResetRequest, db: Session = Depends(g
     
     db.add(reset_code)
     db.commit()
+    print(f"💾 [LOG] Código guardado en base de datos")
     
     # Enviar email
+    print(f"📧 [LOG] Iniciando envío de email a: {request.email}")
     email_sent = await send_password_reset_email(request.email, code)
+    print(f"📧 [LOG] Resultado del envío: {'✅ Exitoso' if email_sent else '❌ Falló'}")
     
     if not email_sent:
+        print(f"❌ [LOG] Error al enviar email - lanzando excepción")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error al enviar el email. Intenta nuevamente."
         )
     
+    print(f"✅ [LOG] Proceso completado exitosamente para: {request.email}")
     return {"message": "Si el email existe, se enviará un código de recuperación"}
 
 @router.post("/reset-password")

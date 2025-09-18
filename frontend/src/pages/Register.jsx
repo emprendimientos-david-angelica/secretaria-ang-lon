@@ -8,7 +8,6 @@ import '../components/PhoneInput.css'
 
 function Register() {
   const [formData, setFormData] = useState({
-    username: '',
     email: '',
     full_name: '',
     phone_number: '',
@@ -56,7 +55,6 @@ function Register() {
     }
 
     const userData = {
-      username: formData.username,
       email: formData.email,
       full_name: formData.full_name,
       phone_number: formData.phone_number,
@@ -100,25 +98,6 @@ function Register() {
                 {error}
               </div>
             )}
-
-            <div>
-              <label htmlFor="username" className="form-label">
-                Nombre de usuario
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  id="username"
-                  name="username"
-                  type="text"
-                  required
-                  className="input-field pl-10"
-                  placeholder="Elige un nombre de usuario"
-                  value={formData.username}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
 
             <div>
               <label htmlFor="email" className="form-label">

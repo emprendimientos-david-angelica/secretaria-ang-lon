@@ -22,7 +22,11 @@ class Settings(BaseSettings):
     MAIL_PASSWORD: Optional[str] = None
     MAIL_FROM: Optional[str] = None
     
+    # Frontend
+    VITE_API_URL: Optional[str] = None
+    
     class Config:
         env_file = ".env"
+        extra = "ignore"  # Ignorar variables extra del .env
 
 settings = Settings()

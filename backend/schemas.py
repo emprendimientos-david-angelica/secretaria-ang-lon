@@ -5,7 +5,7 @@ from datetime import datetime, date
 # Schemas de Usuario
 class UserBase(BaseModel):
     email: EmailStr
-    username: str
+    username: Optional[str] = None  # Campo opcional, ya no se usa para login
     full_name: Optional[str] = None
     phone_number: Optional[str] = None
     photo_url: Optional[str] = None

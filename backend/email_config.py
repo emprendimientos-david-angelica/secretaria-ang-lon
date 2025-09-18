@@ -1,12 +1,16 @@
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from config import settings
 import os
+from dotenv import load_dotenv
+
+# Cargar variables de entorno
+load_dotenv()
 
 # Configuración de email
 email_config = ConnectionConfig(
-    MAIL_USERNAME=os.getenv("MAIL_USERNAME", "your-email@gmail.com"),
-    MAIL_PASSWORD=os.getenv("MAIL_PASSWORD", "your-app-password"),
-    MAIL_FROM=os.getenv("MAIL_FROM", "your-email@gmail.com"),
+    MAIL_USERNAME=settings.MAIL_USERNAME or "your-email@gmail.com",
+    MAIL_PASSWORD=settings.MAIL_PASSWORD or "your-app-password",
+    MAIL_FROM=settings.MAIL_FROM or "your-email@gmail.com",
     MAIL_PORT=587,
     MAIL_SERVER="smtp.gmail.com",
     MAIL_STARTTLS=True,
@@ -19,6 +23,16 @@ fastmail = FastMail(email_config)
 
 async def send_password_reset_email(email: str, code: str):
     """Envía un email con el código de recuperación de contraseña"""
+    
+    print(f"📧 [EMAIL] Iniciando envío de correo de recuperación")
+    print(f"📧 [EMAIL] Destinatario: {email}")
+    print(f"📧 [EMAIL] Código: {code}")
+    print(f"📧 [EMAIL] Configuración SMTP:")
+    print(f"   - Servidor: {email_config.MAIL_SERVER}")
+    print(f"   - Puerto: {email_config.MAIL_PORT}")
+    print(f"   - Usuario: {email_config.MAIL_USERNAME}")
+    print(f"   - Remitente: {email_config.MAIL_FROM}")
+    print(f"   - TLS: {email_config.MAIL_STARTTLS}")
     
     html_content = f"""
     <!DOCTYPE html>
@@ -118,8 +132,12 @@ async def send_password_reset_email(email: str, code: str):
     )
     
     try:
+        print(f"📧 [EMAIL] Enviando mensaje...")
         await fastmail.send_message(message)
+        print(f"✅ [EMAIL] Correo enviado exitosamente a: {email}")
         return True
     except Exception as e:
-        print(f"Error enviando email: {e}")
+        print(f"❌ [EMAIL] Error enviando email: {e}")
+        print(f"❌ [EMAIL] Tipo de error: {type(e).__name__}")
+        print(f"❌ [EMAIL] Detalles del error: {str(e)}")
         return False

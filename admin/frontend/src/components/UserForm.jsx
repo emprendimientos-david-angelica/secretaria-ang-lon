@@ -30,9 +30,8 @@ const UserForm = ({ user, onSave, onCancel, mode = 'create' }) => {
   const validateForm = () => {
     const newErrors = {}
 
-    if (!formData.username.trim()) {
-      newErrors.username = 'El nombre de usuario es requerido'
-    } else if (formData.username.length < 3) {
+    // El nombre de usuario es opcional, pero si se proporciona debe tener al menos 3 caracteres
+    if (formData.username.trim() && formData.username.length < 3) {
       newErrors.username = 'El nombre de usuario debe tener al menos 3 caracteres'
     }
 
@@ -125,7 +124,7 @@ const UserForm = ({ user, onSave, onCancel, mode = 'create' }) => {
             {/* Username */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nombre de Usuario
+                Nombre de Usuario <span className="text-gray-500">(Opcional)</span>
               </label>
               <input
                 type="text"
@@ -135,7 +134,7 @@ const UserForm = ({ user, onSave, onCancel, mode = 'create' }) => {
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-rose-500 ${
                   errors.username ? 'border-red-500' : 'border-gray-300'
                 }`}
-                placeholder="usuario123"
+                placeholder="usuario123 (opcional)"
               />
               {errors.username && (
                 <p className="text-sm text-red-600 mt-1">{errors.username}</p>
