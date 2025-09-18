@@ -47,6 +47,14 @@ def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(securi
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Acceso denegado. Se requieren permisos de administrador."
         )
+    
+    # Validar que el usuario esté activo
+    if not user.get('is_active', True):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Usuario inactivo. Contacta al administrador del sistema."
+        )
+    
     return user
 
 @app.get("/")
@@ -70,6 +78,13 @@ async def login(credentials: schemas.UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciales inválidas o usuario no es administrador"
+        )
+    
+    # Validar que el usuario esté activo
+    if not user.get('is_active', True):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Usuario inactivo. Contacta al administrador del sistema."
         )
     
     if not auth.verify_password(credentials.password, user.get('hashed_password')):

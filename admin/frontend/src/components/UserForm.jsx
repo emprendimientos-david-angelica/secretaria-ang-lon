@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { X, Save, User, Mail, Lock, Shield } from 'lucide-react'
+import { X, Save, User, Mail, Lock, Shield, Phone, Edit } from 'lucide-react'
 
 const UserForm = ({ user, onSave, onCancel, mode = 'create' }) => {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     full_name: '',
+    phone_number: '',
     password: '',
     confirm_password: '',
     is_active: true,
@@ -19,6 +20,7 @@ const UserForm = ({ user, onSave, onCancel, mode = 'create' }) => {
         username: user.username || '',
         email: user.email || '',
         full_name: user.full_name || '',
+        phone_number: user.phone_number || '',
         password: '',
         confirm_password: '',
         is_active: user.is_active !== undefined ? user.is_active : true,
@@ -31,7 +33,8 @@ const UserForm = ({ user, onSave, onCancel, mode = 'create' }) => {
     const newErrors = {}
 
     // El nombre de usuario es opcional, pero si se proporciona debe tener al menos 3 caracteres
-    if (formData.username.trim() && formData.username.length < 3) {
+    // Solo validar en modo edición
+    if (mode === 'edit' && formData.username.trim() && formData.username.length < 3) {
       newErrors.username = 'El nombre de usuario debe tener al menos 3 caracteres'
     }
 
@@ -63,11 +66,16 @@ const UserForm = ({ user, onSave, onCancel, mode = 'create' }) => {
     e.preventDefault()
     if (validateForm()) {
       const userData = {
-        username: formData.username,
         email: formData.email,
         full_name: formData.full_name,
+        phone_number: formData.phone_number,
         is_active: formData.is_active,
         is_admin: formData.is_admin
+      }
+      
+      // Solo incluir username en modo edición
+      if (mode === 'edit') {
+        userData.username = formData.username
       }
       
       if (formData.password) {
@@ -121,25 +129,27 @@ const UserForm = ({ user, onSave, onCancel, mode = 'create' }) => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Username */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nombre de Usuario <span className="text-gray-500">(Opcional)</span>
-              </label>
-              <input
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-rose-500 ${
-                  errors.username ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="usuario123 (opcional)"
-              />
-              {errors.username && (
-                <p className="text-sm text-red-600 mt-1">{errors.username}</p>
-              )}
-            </div>
+            {/* Username - Solo en modo edición */}
+            {mode === 'edit' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nombre de Usuario <span className="text-gray-500">(Opcional)</span>
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-rose-500 ${
+                    errors.username ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="usuario123 (opcional)"
+                />
+                {errors.username && (
+                  <p className="text-sm text-red-600 mt-1">{errors.username}</p>
+                )}
+              </div>
+            )}
 
             {/* Email */}
             <div>
@@ -178,6 +188,27 @@ const UserForm = ({ user, onSave, onCancel, mode = 'create' }) => {
               />
               {errors.full_name && (
                 <p className="text-sm text-red-600 mt-1">{errors.full_name}</p>
+              )}
+            </div>
+
+            {/* Phone Number */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                <Phone className="inline h-4 w-4 mr-1" />
+                Número de Teléfono <span className="text-gray-500">(Opcional)</span>
+              </label>
+              <input
+                type="tel"
+                name="phone_number"
+                value={formData.phone_number}
+                onChange={handleChange}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-rose-500 ${
+                  errors.phone_number ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="+57 300 123 4567"
+              />
+              {errors.phone_number && (
+                <p className="text-sm text-red-600 mt-1">{errors.phone_number}</p>
               )}
             </div>
 

@@ -3,9 +3,11 @@ from typing import Optional
 from datetime import datetime
 
 class UserBase(BaseModel):
-    username: str
+    username: Optional[str] = None
     email: EmailStr
-    full_name: str
+    full_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    photo_url: Optional[str] = None
     is_active: bool = True
     is_admin: bool = False
 
@@ -20,6 +22,9 @@ class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
     full_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    photo_url: Optional[str] = None
+    password: Optional[str] = None
     is_active: Optional[bool] = None
     is_admin: Optional[bool] = None
 

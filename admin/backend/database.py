@@ -27,7 +27,7 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
     try:
         result = db.execute(
             text("""
-                SELECT id, username, email, full_name, is_active, is_admin, created_at, updated_at 
+                SELECT id, username, email, full_name, phone_number, photo_url, is_active, is_admin, created_at, updated_at 
                 FROM users 
                 ORDER BY created_at DESC 
                 LIMIT :limit OFFSET :skip
@@ -41,6 +41,8 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
                 "username": row.username,
                 "email": row.email,
                 "full_name": row.full_name,
+                "phone_number": row.phone_number,
+                "photo_url": row.photo_url,
                 "is_active": row.is_active,
                 "is_admin": row.is_admin,
                 "created_at": row.created_at if row.created_at else datetime.utcnow(),
@@ -56,7 +58,7 @@ def get_user(db: Session, user_id: int):
     try:
         result = db.execute(
             text("""
-                SELECT id, username, email, full_name, is_active, is_admin, created_at, updated_at 
+                SELECT id, username, email, full_name, phone_number, photo_url, is_active, is_admin, created_at, updated_at 
                 FROM users 
                 WHERE id = :user_id
             """),
@@ -69,6 +71,8 @@ def get_user(db: Session, user_id: int):
                 "username": result.username,
                 "email": result.email,
                 "full_name": result.full_name,
+                "phone_number": result.phone_number,
+                "photo_url": result.photo_url,
                 "is_active": result.is_active,
                 "is_admin": result.is_admin,
                 "created_at": result.created_at if result.created_at else datetime.utcnow(),
@@ -115,17 +119,38 @@ def create_user(db: Session, user_data):
         from auth import get_password_hash
         hashed_password = get_password_hash(user_data.password)
         
+        # Generar username automáticamente si no se proporciona
+        username = user_data.username
+        if not username:
+            # Usar el prefijo del email como base para el username
+            email_prefix = user_data.email.split('@')[0]
+            username = email_prefix
+            
+            # Verificar si el username ya existe y agregar un número si es necesario
+            counter = 1
+            original_username = username
+            while True:
+                existing_user = db.execute(
+                    text("SELECT id FROM users WHERE username = :username"),
+                    {"username": username}
+                ).first()
+                if not existing_user:
+                    break
+                username = f"{original_username}{counter}"
+                counter += 1
+        
         # Insertar usuario
         result = db.execute(
             text("""
-                INSERT INTO users (username, email, full_name, hashed_password, is_active, is_admin, created_at, updated_at)
-                VALUES (:username, :email, :full_name, :hashed_password, :is_active, :is_admin, NOW(), NOW())
-                RETURNING id, username, email, full_name, is_active, is_admin, created_at, updated_at
+                INSERT INTO users (username, email, full_name, phone_number, hashed_password, is_active, is_admin, created_at, updated_at)
+                VALUES (:username, :email, :full_name, :phone_number, :hashed_password, :is_active, :is_admin, NOW(), NOW())
+                RETURNING id, username, email, full_name, phone_number, is_active, is_admin, created_at, updated_at
             """),
             {
-                "username": user_data.username,
+                "username": username,
                 "email": user_data.email,
                 "full_name": user_data.full_name,
+                "phone_number": getattr(user_data, 'phone_number', None),
                 "hashed_password": hashed_password,
                 "is_active": user_data.is_active,
                 "is_admin": user_data.is_admin
@@ -140,6 +165,7 @@ def create_user(db: Session, user_data):
             "username": new_user.username,
             "email": new_user.email,
             "full_name": new_user.full_name,
+            "phone_number": new_user.phone_number,
             "is_active": new_user.is_active,
             "is_admin": new_user.is_admin,
             "created_at": new_user.created_at.isoformat() if new_user.created_at else None,
@@ -169,6 +195,10 @@ def update_user(db: Session, user_id: int, user_data):
             update_fields.append("full_name = :full_name")
             params["full_name"] = user_data.full_name
         
+        if user_data.phone_number is not None:
+            update_fields.append("phone_number = :phone_number")
+            params["phone_number"] = user_data.phone_number
+        
         if user_data.is_active is not None:
             update_fields.append("is_active = :is_active")
             params["is_active"] = user_data.is_active
@@ -176,6 +206,13 @@ def update_user(db: Session, user_id: int, user_data):
         if user_data.is_admin is not None:
             update_fields.append("is_admin = :is_admin")
             params["is_admin"] = user_data.is_admin
+        
+        # Manejar cambio de contraseña si se proporciona
+        if hasattr(user_data, 'password') and user_data.password:
+            from auth import get_password_hash
+            hashed_password = get_password_hash(user_data.password)
+            update_fields.append("hashed_password = :hashed_password")
+            params["hashed_password"] = hashed_password
         
         if not update_fields:
             return get_user(db, user_id)

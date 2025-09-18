@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Users, Edit, Trash2, Plus, Search, Eye, RefreshCw } from 'lucide-react'
+import { Users, Edit, Trash2, Plus, Search, Eye, RefreshCw, Camera, UserCheck, UserX } from 'lucide-react'
 import { usersService } from '../services/api'
 
 const UsersList = ({ onEditUser, onCreateUser, onViewUser, onRefresh }) => {
@@ -7,6 +7,20 @@ const UsersList = ({ onEditUser, onCreateUser, onViewUser, onRefresh }) => {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [error, setError] = useState(null)
+
+  // Función para construir la URL completa de la foto
+  const getPhotoUrl = (photoUrl) => {
+    if (!photoUrl) return null
+    // Si ya es una URL completa, devolverla tal como está
+    if (photoUrl.startsWith('http')) return photoUrl
+    // Si es una ruta relativa, construir la URL completa usando la base URL del backend principal
+    if (photoUrl.startsWith('/api/upload/')) {
+      // Las fotos están en el backend principal (puerto 8000), no en el administrativo (puerto 8001)
+      const MAIN_API_BASE_URL = 'http://localhost:8000'
+      return `${MAIN_API_BASE_URL}${photoUrl}`
+    }
+    return photoUrl
+  }
 
   // Cargar usuarios reales de la API
   const loadUsers = async () => {
@@ -53,11 +67,43 @@ const UsersList = ({ onEditUser, onCreateUser, onViewUser, onRefresh }) => {
     }
   }
 
-  const filteredUsers = users.filter(user =>
-    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.full_name.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const handleToggleUserStatus = async (user) => {
+    const newStatus = !user.is_active
+    const action = newStatus ? 'activar' : 'inactivar'
+    
+    if (confirm(`¿Estás seguro de que quieres ${action} a ${user.full_name}?`)) {
+      try {
+        await usersService.updateUser(user.id, {
+          is_active: newStatus
+        })
+        
+        // Actualizar el estado local inmediatamente para mejor UX
+        setUsers(prevUsers => 
+          prevUsers.map(u => 
+            u.id === user.id ? { ...u, is_active: newStatus } : u
+          )
+        )
+        
+        alert(`Usuario ${action}do exitosamente`)
+        if (onRefresh) onRefresh()
+      } catch (error) {
+        alert(`Error al ${action} usuario`)
+        console.error('Error toggling user status:', error)
+        // Recargar la lista en caso de error para mantener consistencia
+        loadUsers()
+      }
+    }
+  }
+
+  const filteredUsers = users.filter(user => {
+    const searchLower = searchTerm.toLowerCase()
+    return (
+      (user.username && user.username.toLowerCase().includes(searchLower)) ||
+      (user.email && user.email.toLowerCase().includes(searchLower)) ||
+      (user.full_name && user.full_name.toLowerCase().includes(searchLower)) ||
+      (user.phone_number && user.phone_number.toLowerCase().includes(searchLower))
+    )
+  })
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
@@ -162,15 +208,32 @@ const UsersList = ({ onEditUser, onCreateUser, onViewUser, onRefresh }) => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
-                        <div className="h-10 w-10 rounded-full bg-rose-100 flex items-center justify-center">
-                          <span className="text-sm font-medium text-rose-600">
-                            {user.username.charAt(0).toUpperCase()}
-                          </span>
+                        {user.photo_url ? (
+                          <img
+                            src={getPhotoUrl(user.photo_url)}
+                            alt="Foto de perfil"
+                            className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
+                            onError={(e) => {
+                              e.target.style.display = 'none'
+                              e.target.nextSibling.style.display = 'flex'
+                            }}
+                          />
+                        ) : null}
+                        <div 
+                          className={`h-10 w-10 rounded-full bg-gradient-to-br from-rose-100 to-pink-100 flex items-center justify-center border-2 border-gray-200 ${user.photo_url ? 'hidden' : 'flex'}`}
+                        >
+                          {user.photo_url ? (
+                            <Camera className="h-5 w-5 text-rose-400" />
+                          ) : (
+                            <span className="text-sm font-medium text-rose-600">
+                              {user.username.charAt(0).toUpperCase()}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">
-                          {user.full_name}
+                          {user.full_name || 'Sin nombre'}
                         </div>
                         <div className="text-sm text-gray-500">
                           @{user.username}
@@ -217,6 +280,21 @@ const UsersList = ({ onEditUser, onCreateUser, onViewUser, onRefresh }) => {
                         title="Editar usuario"
                       >
                         <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleToggleUserStatus(user)}
+                        className={`p-1 ${
+                          user.is_active 
+                            ? 'text-orange-600 hover:text-orange-900' 
+                            : 'text-green-600 hover:text-green-900'
+                        }`}
+                        title={user.is_active ? 'Inactivar usuario' : 'Activar usuario'}
+                      >
+                        {user.is_active ? (
+                          <UserX className="h-4 w-4" />
+                        ) : (
+                          <UserCheck className="h-4 w-4" />
+                        )}
                       </button>
                       <button
                         onClick={() => handleDeleteUser(user)}

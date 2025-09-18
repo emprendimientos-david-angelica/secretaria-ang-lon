@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { authService } from '../services/api'
+import { Eye, EyeOff } from 'lucide-react'
 
 const Login = ({ onLoginSuccess }) => {
   const [formData, setFormData] = useState({
@@ -8,12 +9,17 @@ const Login = ({ onLoginSuccess }) => {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     })
+  }
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword)
   }
 
   const handleSubmit = async (e) => {
@@ -25,8 +31,16 @@ const Login = ({ onLoginSuccess }) => {
       const response = await authService.login(formData.username, formData.password)
       onLoginSuccess(response)
     } catch (error) {
-      setError('Credenciales inválidas. Verifica tu usuario y contraseña.')
       console.error('Login error:', error)
+      
+      // Manejar diferentes tipos de errores
+      if (error.response?.status === 403) {
+        setError('Usuario inactivo. Contacta al administrador del sistema.')
+      } else if (error.response?.status === 401) {
+        setError('Credenciales inválidas. Verifica tu usuario y contraseña.')
+      } else {
+        setError('Error de conexión. Intenta nuevamente.')
+      }
     } finally {
       setLoading(false)
     }
@@ -60,20 +74,31 @@ const Login = ({ onLoginSuccess }) => {
                 onChange={handleChange}
               />
             </div>
-            <div>
+            <div className="relative">
               <label htmlFor="password" className="sr-only">
                 Contraseña
               </label>
               <input
                 id="password"
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Contraseña"
                 value={formData.password}
                 onChange={handleChange}
               />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
             </div>
           </div>
 

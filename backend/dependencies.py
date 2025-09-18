@@ -33,8 +33,8 @@ def get_current_user(
     
     if not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Usuario inactivo"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Usuario inactivo. Contacta al administrador del sistema."
         )
     
     return user
@@ -43,7 +43,7 @@ def get_current_active_user(current_user: User = Depends(get_current_user)) -> U
     """Verifica que el usuario actual esté activo"""
     if not current_user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Usuario inactivo"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Usuario inactivo. Contacta al administrador del sistema."
         )
     return current_user

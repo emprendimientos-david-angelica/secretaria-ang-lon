@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Users, Settings, BarChart3, Activity, Shield, Home, ArrowLeft } from 'lucide-react'
 import UsersList from './components/UsersList'
 import UserForm from './components/UserForm'
+import UserViewModal from './components/UserViewModal'
 import Login from './components/Login'
 import { usersService, systemService, authService } from './services/api'
 
@@ -10,7 +11,9 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null)
   const [currentView, setCurrentView] = useState('dashboard')
   const [showUserForm, setShowUserForm] = useState(false)
+  const [showUserView, setShowUserView] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
+  const [viewingUser, setViewingUser] = useState(null)
   const [formMode, setFormMode] = useState('create')
 
   useEffect(() => {
@@ -53,7 +56,8 @@ function App() {
   }
 
   const handleViewUser = (user) => {
-    alert(`Viendo usuario: ${user.full_name}\nEmail: ${user.email}\nRol: ${user.is_admin ? 'Administrador' : 'Usuario'}`)
+    setViewingUser(user)
+    setShowUserView(true)
   }
 
   const handleSaveUser = async (userData) => {
@@ -80,6 +84,11 @@ function App() {
   const handleCancelUserForm = () => {
     setShowUserForm(false)
     setEditingUser(null)
+  }
+
+  const handleCloseUserView = () => {
+    setShowUserView(false)
+    setViewingUser(null)
   }
 
   const onRefreshUsers = () => {
@@ -257,6 +266,14 @@ function App() {
           mode={formMode}
           onSave={handleSaveUser}
           onCancel={handleCancelUserForm}
+        />
+      )}
+
+      {/* User View Modal */}
+      {showUserView && (
+        <UserViewModal
+          user={viewingUser}
+          onClose={handleCloseUserView}
         />
       )}
     </div>
