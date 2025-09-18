@@ -11,10 +11,22 @@ export function useAuth() {
   return context
 }
 
+const getInitialFormData = () => {
+  const storedData = sessionStorage.getItem('loginFormData');
+  try {
+    return storedData ? JSON.parse(storedData) : { email: '', password: '' };
+  } catch (e) {
+    return { email: '', password: '' };
+  }
+};
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(localStorage.getItem('token'))
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true) // Loading inicial de la app
+  const [isLoggingIn, setIsLoggingIn] = useState(false) // Loading para el proceso de login
+  const [loginError, setLoginError] = useState(localStorage.getItem('loginError'))
+  const [loginFormData, setLoginFormDataState] = useState(getInitialFormData());
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -34,7 +46,19 @@ export function AuthProvider({ children }) {
     initializeAuth()
   }, [token])
 
+  const clearLoginError = () => {
+    setLoginError(null)
+    localStorage.removeItem('loginError')
+  }
+
+  const setLoginFormData = (data) => {
+    setLoginFormDataState(data);
+    sessionStorage.setItem('loginFormData', JSON.stringify(data));
+  };
+
   const login = async (email, password) => {
+    setIsLoggingIn(true)
+    clearLoginError()
     try {
       const response = await api.post('/api/auth/login', { email, password })
       const { access_token } = response.data
@@ -45,13 +69,14 @@ export function AuthProvider({ children }) {
       // Obtener información del usuario
       const userResponse = await api.get('/api/auth/me')
       setUser(userResponse.data)
-      
-      return { success: true }
+      setIsLoggingIn(false)
+      sessionStorage.removeItem('loginFormData');
+      // No retornamos nada, el estado del contexto lo dirá todo
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.detail || 'Error al iniciar sesión' 
-      }
+      const errorMessage = error.response?.data?.detail || 'Error al iniciar sesión'
+      setLoginError(errorMessage)
+      localStorage.setItem('loginError', errorMessage)
+      setIsLoggingIn(false)
     }
   }
 
@@ -79,6 +104,11 @@ export function AuthProvider({ children }) {
     token,
     isAuthenticated: !!token,
     loading,
+    isLoggingIn,
+    loginError,
+    clearLoginError,
+    loginFormData,
+    setLoginFormData,
     login,
     register,
     logout

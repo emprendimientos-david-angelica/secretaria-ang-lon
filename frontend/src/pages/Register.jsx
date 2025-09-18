@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { User, Lock, Mail, UserPlus, Sparkles, Phone, Eye, EyeOff } from 'lucide-react'
+import { User, Lock, Mail, UserPlus, Sparkles, Phone, Eye, EyeOff, X, AlertCircle } from 'lucide-react'
 import PhoneInput from 'react-phone-number-input'
 import 'react-phone-number-input/style.css'
 import '../components/PhoneInput.css'
@@ -18,9 +18,31 @@ function Register() {
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [showError, setShowError] = useState(false)
   
   const { register } = useAuth()
   const navigate = useNavigate()
+
+  // Efecto para manejar la visualización del error
+  useEffect(() => {
+    if (error) {
+      setShowError(true)
+      // Mantener el error visible por 10 segundos
+      const timer = setTimeout(() => {
+        setShowError(false)
+        // Limpiar el error después de la animación
+        setTimeout(() => setError(''), 500)
+      }, 10000)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [error])
+
+  // Función para cerrar el error manualmente
+  const closeError = () => {
+    setShowError(false)
+    setTimeout(() => setError(''), 300)
+  }
 
   const handleChange = (e) => {
     setFormData({
@@ -40,16 +62,19 @@ function Register() {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setShowError(false)
 
     // Validar contraseñas
     if (formData.password !== formData.confirmPassword) {
       setError('Las contraseñas no coinciden')
+      setShowError(true)
       setLoading(false)
       return
     }
 
     if (formData.password.length < 6) {
       setError('La contraseña debe tener al menos 6 caracteres')
+      setShowError(true)
       setLoading(false)
       return
     }
@@ -69,6 +94,7 @@ function Register() {
       })
     } else {
       setError(result.error)
+      setShowError(true)
     }
     
     setLoading(false)
@@ -94,8 +120,25 @@ function Register() {
         <div className="card">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl">
-                {error}
+              <div className={`transition-all duration-300 ease-in-out transform ${
+                showError 
+                  ? 'opacity-100 translate-y-0 scale-100' 
+                  : 'opacity-0 -translate-y-2 scale-95'
+              }`}>
+                <div className="bg-rose-50 border-l-4 border-rose-400 text-rose-700 px-4 py-3 rounded-xl shadow-lg relative">
+                  <div className="flex items-start">
+                    <AlertCircle className="h-5 w-5 text-rose-400 mt-0.5 mr-3 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{error}</p>
+                    </div>
+                    <button
+                      onClick={closeError}
+                      className="ml-3 text-rose-400 hover:text-rose-600 transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 

@@ -1,41 +1,41 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { Mail, Lock, Sparkles, Eye, EyeOff } from 'lucide-react'
+import { Mail, Lock, Sparkles, Eye, EyeOff, X, AlertCircle } from 'lucide-react'
 
 function Login() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   
-  const { login } = useAuth()
+  const { 
+    login, 
+    isLoggingIn, 
+    loginError, 
+    clearLoginError,
+    loginFormData,
+    setLoginFormData
+  } = useAuth()
+  
   const navigate = useNavigate()
 
+  // Efecto para manejar la visualización del error
+  // Ya no se necesita un estado local para 'showError', el error viene del contexto
+
+  // Función para cerrar el error manualmente
+  // Esto también se manejará en el contexto para limpiar el error
+  
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
+    if (loginError) {
+      clearLoginError()
+    }
+    setLoginFormData({
+      ...loginFormData,
       [e.target.name]: e.target.value
     })
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
-    setLoading(true)
-    setError('')
-
-    const result = await login(formData.email, formData.password)
-    
-    if (result.success) {
-      navigate('/dashboard')
-    } else {
-      setError(result.error)
-    }
-    
-    setLoading(false)
+    login(loginFormData.email, loginFormData.password)
   }
 
   return (
@@ -57,9 +57,18 @@ function Login() {
         {/* Form */}
         <div className="card">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl">
-                {error}
+            {loginError && (
+              <div className="transition-all duration-300 ease-in-out transform opacity-100 translate-y-0 scale-100">
+                <div className="bg-rose-50 border-l-4 border-rose-400 text-rose-700 px-4 py-3 rounded-xl shadow-lg relative">
+                  <div className="flex items-start">
+                    <AlertCircle className="h-5 w-5 text-rose-400 mt-0.5 mr-3 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{loginError}</p>
+                    </div>
+                    {/* El botón de cierre se puede re-implementar si es necesario, 
+                        pero por ahora se limpiará al reintentar el login */}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -76,7 +85,7 @@ function Login() {
                   required
                   className="input-field pl-10"
                   placeholder="tu@email.com"
-                  value={formData.email}
+                  value={loginFormData.email}
                   onChange={handleChange}
                 />
               </div>
@@ -95,7 +104,7 @@ function Login() {
                   required
                   className="input-field pl-10 pr-10"
                   placeholder="Tu contraseña"
-                  value={formData.password}
+                  value={loginFormData.password}
                   onChange={handleChange}
                 />
                 <button
@@ -110,10 +119,10 @@ function Login() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={isLoggingIn}
               className="btn-primary w-full py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+              {isLoggingIn ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </button>
           </form>
 
