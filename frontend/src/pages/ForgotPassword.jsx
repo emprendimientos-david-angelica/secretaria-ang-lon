@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Mail, ArrowLeft, Sparkles, CheckCircle } from 'lucide-react'
+import { Mail, ArrowLeft, Sparkles, CheckCircle, X, AlertCircle } from 'lucide-react'
 import { api } from '../services/api'
 
 function ForgotPassword() {
@@ -13,6 +13,7 @@ function ForgotPassword() {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setSuccess(false)
 
     try {
       await api.post('/api/auth/forgot-password', { email })
@@ -102,8 +103,19 @@ function ForgotPassword() {
         <div className="card">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl">
-                {error}
+              <div className="bg-rose-50 border-l-4 border-rose-400 text-rose-700 px-4 py-3 rounded-xl shadow-lg relative">
+                <div className="flex items-start">
+                  <AlertCircle className="h-5 w-5 text-rose-400 mt-0.5 mr-3 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{error}</p>
+                  </div>
+                  <button
+                    onClick={() => setError('')}
+                    className="ml-3 text-rose-400 hover:text-rose-600 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             )}
 

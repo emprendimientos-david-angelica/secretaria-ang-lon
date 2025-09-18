@@ -52,6 +52,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         email=user.email,
         username=username,  # Username generado automáticamente
         full_name=user.full_name,
+        phone_number=user.phone_number,
         hashed_password=hashed_password
     )
     
@@ -147,54 +148,49 @@ async def forgot_password(request: PasswordResetRequest, db: Session = Depends(g
     
     print(f"🔍 [LOG] Solicitud de recuperación de contraseña para: {request.email}")
     
-    # Verificar si el usuario existe
     user = db.query(User).filter(User.email == request.email).first()
-    if not user:
-        print(f"❌ [LOG] Usuario no encontrado: {request.email}")
-        # Por seguridad, no revelamos si el email existe o no
-        return {"message": "Si el email existe, se enviará un código de recuperación"}
     
-    print(f"✅ [LOG] Usuario encontrado: {user.email}")
-    
-    # Generar código de 6 dígitos
-    code = generate_reset_code()
-    print(f"🔢 [LOG] Código generado: {code}")
-    
-    # Calcular tiempo de expiración (15 minutos)
-    expires_at = datetime.utcnow() + timedelta(minutes=15)
-    print(f"⏰ [LOG] Código expira en: {expires_at}")
-    
-    # Invalidar códigos anteriores para este email
-    old_codes = db.query(PasswordResetCode).filter(
-        PasswordResetCode.email == request.email
-    ).update({"is_used": True})
-    print(f"🗑️ [LOG] Códigos anteriores invalidados: {old_codes}")
-    
-    # Crear nuevo código
-    reset_code = PasswordResetCode(
-        email=request.email,
-        code=code,
-        expires_at=expires_at
-    )
-    
-    db.add(reset_code)
-    db.commit()
-    print(f"💾 [LOG] Código guardado en base de datos")
-    
-    # Enviar email
-    print(f"📧 [LOG] Iniciando envío de email a: {request.email}")
-    email_sent = await send_password_reset_email(request.email, code)
-    print(f"📧 [LOG] Resultado del envío: {'✅ Exitoso' if email_sent else '❌ Falló'}")
-    
-    if not email_sent:
-        print(f"❌ [LOG] Error al enviar email - lanzando excepción")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al enviar el email. Intenta nuevamente."
+    if user:
+        print(f"✅ [LOG] Usuario encontrado: {user.email}")
+        
+        code = generate_reset_code()
+        print(f"🔢 [LOG] Código generado: {code}")
+        
+        expires_at = datetime.utcnow() + timedelta(minutes=15)
+        print(f"⏰ [LOG] Código expira en: {expires_at}")
+        
+        db.query(PasswordResetCode).filter(
+            PasswordResetCode.email == request.email
+        ).update({"is_used": True})
+        
+        reset_code = PasswordResetCode(
+            email=request.email,
+            code=code,
+            expires_at=expires_at
         )
-    
-    print(f"✅ [LOG] Proceso completado exitosamente para: {request.email}")
-    return {"message": "Si el email existe, se enviará un código de recuperación"}
+        
+        db.add(reset_code)
+        db.commit()
+        print(f"💾 [LOG] Código guardado en base de datos")
+        
+        email_sent = await send_password_reset_email(request.email, code)
+        print(f"📧 [LOG] Resultado del envío: {'✅ Exitoso' if email_sent else '❌ Falló'}")
+        
+        if not email_sent:
+            print(f"❌ [LOG] Error al enviar email - lanzando excepción")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error al enviar el email. Intenta nuevamente."
+            )
+        
+        print(f"✅ [LOG] Proceso completado exitosamente para: {request.email}")
+        return {"message": "Si el email existe, se enviará un código de recuperación"}
+    else:
+        print(f"❌ [LOG] Usuario no encontrado: {request.email}. No se enviará correo.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="El correo electrónico no se encuentra registrado."
+        )
 
 @router.post("/reset-password")
 def reset_password(request: PasswordResetVerify, db: Session = Depends(get_db)):

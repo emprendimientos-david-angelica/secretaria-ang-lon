@@ -10,7 +10,7 @@ load_dotenv()
 email_config = ConnectionConfig(
     MAIL_USERNAME=settings.MAIL_USERNAME or "your-email@gmail.com",
     MAIL_PASSWORD=settings.MAIL_PASSWORD or "your-app-password",
-    MAIL_FROM=settings.MAIL_FROM or "your-email@gmail.com",
+    MAIL_FROM=settings.MAIL_USERNAME or "your-email@gmail.com",
     MAIL_PORT=587,
     MAIL_SERVER="smtp.gmail.com",
     MAIL_STARTTLS=True,
@@ -50,7 +50,7 @@ async def send_password_reset_email(email: str, code: str):
                 padding: 20px;
             }}
             .header {{
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #EC4899 0%, #F43F5E 100%);
                 color: white;
                 padding: 30px;
                 text-align: center;
@@ -62,7 +62,7 @@ async def send_password_reset_email(email: str, code: str):
                 border-radius: 0 0 10px 10px;
             }}
             .code {{
-                background: #667eea;
+                background: #EC4899;
                 color: white;
                 font-size: 24px;
                 font-weight: bold;
@@ -78,7 +78,7 @@ async def send_password_reset_email(email: str, code: str):
                 color: #856404;
                 padding: 15px;
                 border-radius: 5px;
-                margin: 20px 0;
+                margin: 35px 0 20px 0;
             }}
             .footer {{
                 text-align: center;
