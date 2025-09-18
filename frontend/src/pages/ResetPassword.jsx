@@ -94,7 +94,7 @@ function ResetPassword() {
                   Ya puedes iniciar sesión con tu nueva contraseña
                 </p>
               </div>
-
+              <br />
               <Link
                 to="/login"
                 className="btn-primary w-full py-3 text-lg"

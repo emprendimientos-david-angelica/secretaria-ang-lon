@@ -57,11 +57,11 @@ function ForgotPassword() {
                 <p>• Revisa tu carpeta de spam si no lo encuentras</p>
                 <p>• No compartas este código con nadie</p>
               </div>
-
+              <br />
               <Link
                 to="/reset-password"
                 state={{ email }}
-                className="btn-primary w-full py-3 text-lg"
+                className="btn-primary w-full py-3 text-lg mt-6"
               >
                 Continuar con el código
               </Link>
