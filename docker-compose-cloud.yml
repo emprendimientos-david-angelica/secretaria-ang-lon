@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  # Backend FastAPI (sin PostgreSQL local)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: secretaria_backend
+    environment:
+      - DATABASE_URL=${DATABASE_URL}  # URL de la base de datos en la nube
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_FROM=${MAIL_FROM}
+    ports:
+      - "0.0.0.0:8000:8000"
+    networks:
+      - secretaria_network
+    restart: unless-stopped
+    volumes:
+      - ./backend:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Frontend React
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: secretaria_frontend
+    ports:
+      - "0.0.0.0:3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - secretaria_network
+    restart: unless-stopped
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000
+
+  # Backend Admin API
+  admin-backend:
+    build:
+      context: ./admin/backend
+      dockerfile: Dockerfile
+    container_name: secretaria_admin_backend
+    environment:
+      - DATABASE_URL=${DATABASE_URL}  # Misma URL de la base de datos en la nube
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_FROM=${MAIL_FROM}
+    ports:
+      - "0.0.0.0:8001:8001"
+    depends_on:
+      - backend
+    networks:
+      - secretaria_network
+    restart: unless-stopped
+    volumes:
+      - ./admin/backend:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+
+  # Frontend Admin
+  admin-frontend:
+    build:
+      context: ./admin/frontend
+      dockerfile: Dockerfile
+    container_name: secretaria_admin_frontend
+    ports:
+      - "0.0.0.0:3001:3001"
+    depends_on:
+      - admin-backend
+    networks:
+      - secretaria_network
+    restart: unless-stopped
+    volumes:
+      - ./admin/frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8001
+
+networks:
+  secretaria_network:
+    driver: bridge
+
